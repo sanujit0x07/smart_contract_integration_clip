@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useFarmStore } from "@/store/farm-store";
+import { useFarmStore, type FarmPosition } from "@/store/farm-store";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/contexts/theme-context";
 import Image from "next/image";
@@ -13,7 +13,7 @@ import { Chart } from "@/components/earn/chart";
 import { Table } from "@/components/earn/table";
 import { transactionTableBody, transactionTableHeadings } from "@/components/earn/acitivity-tab";
 import { Form } from "@/components/farm/form";
-import { farmTableBody, singleAssetTableBody } from "@/lib/constants/farm";
+import { farmTableBody, singleAssetTableBody, farmChartData } from "@/lib/constants/farm";
 import { useMarginAccountInfoStore } from "@/store/margin-account-info-store";
 import { MARGIN_ACCOUNT_INFO_ITEMS, MARGIN_ACCOUNT_MORE_DETAILS_ITEMS } from "@/lib/constants/margin";
 import { InfoCard } from "@/components/margin/info-card";
@@ -90,9 +90,10 @@ export default function FarmDetailPage() {
     minDebt,
     maxDebt,
   };
-  // Get row data and tab type from store
+  // Get row data, tab type, and positions from store
   const selectedRow = useFarmStore((state) => state.selectedRow);
   const tabType = useFarmStore((state) => state.tabType);
+  const farmPositions = useFarmStore((state) => state.positions);
 
   // Function to find row data from constants based on id
   const findRowFromId = useCallback((searchId: string) => {
@@ -197,13 +198,31 @@ export default function FarmDetailPage() {
     setActiveTab(tabId);
   }, []);
 
-  // Get table body based on active tab
+  // Build table rows from farm store positions
+  const positionRows = useMemo(() => {
+    return farmPositions.map((pos: FarmPosition) => {
+      const date = new Date(pos.depositedAt);
+      const dateStr = date.toISOString().split("T")[0];
+      const timeStr = date.toTimeString().split(" ")[0];
+      return {
+        cell: [
+          { title: dateStr, description: timeStr },
+          { title: "Add Liquidity" },
+          {
+            icon: iconPaths[pos.asset] || "/icons/usdt-icon.svg",
+            title: `${pos.valueUsd.toLocaleString()} ${pos.asset}`,
+            description: `$${pos.valueUsd.toLocaleString()}`,
+          },
+          { icon: "/icons/user.png", title: "0xc461...c5c7" },
+        ],
+      };
+    });
+  }, [farmPositions]);
+
+  // Get table body based on active tab - only fresh data, no static
   const tableBodyData = useMemo(() => {
-    if (activeTab === "position-history") {
-      return { rows: [] }; // No data for position history
-    }
-    return transactionTableBody; // Show data for current position
-  }, [activeTab]);
+    return { rows: positionRows };
+  }, [positionRows]);
 
   const handleBackToPools = () => {
     router.push("/farm");
@@ -333,7 +352,7 @@ export default function FarmDetailPage() {
             <div className={`w-full h-fit flex flex-col gap-[24px] rounded-[20px] border-[1px] p-[24px] ${
               isDark ? "bg-[#111111]" : "bg-[#F7F7F7]"
             }`}>
-              <Chart  type="farm" heading="1 WISE = <0.001 WETH ($0.159)" downtrend="0.07%" />
+              <Chart  type="farm" heading="1 USDC = 1.0011 USDT ($1.00)" uptrend="0.03%" customData={farmChartData} />
               <Table
                 filterDropdownPosition="right"
                 tableBodyBackground={isDark ? "bg-[#222222]" : "bg-white"}

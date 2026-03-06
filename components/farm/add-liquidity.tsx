@@ -60,6 +60,8 @@ export const AddLiquidity = () => {
   const minDebt = useMarginAccountInfoStore((state) => state.minDebt);
   const maxDebt = useMarginAccountInfoStore((state) => state.maxDebt);
 
+  const setMarginInfo = useMarginAccountInfoStore((state) => state.set);
+
   const marginAccountInfo = {
     totalBorrowedValue,
     totalCollateralValue,
@@ -115,6 +117,12 @@ export const AddLiquidity = () => {
         totalTVL: currentTVL + amount,
         isSubmitting: false,
         txStatus: "confirmed",
+      })
+
+      // Update margin account info with new collateral value
+      setMarginInfo({
+        totalCollateralValue: totalCollateralValue + amount,
+        totalValue: (totalCollateralValue + amount) - totalBorrowedValue,
       })
 
       setTxStatus("confirmed")

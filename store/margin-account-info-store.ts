@@ -19,20 +19,20 @@ export interface MarginAccountInfoStateType {
   hasMarginAccount: boolean;
 }
 
-// Initial State (using same constant values)
+// Initial State (using realistic demo values)
 const initialState: MarginAccountInfoStateType = {
   totalBorrowedValue: 90,
-  totalCollateralValue:1000,
-  totalValue: 0,
-  avgHealthFactor: 0,
-  timeToLiquidation: 0,
-  borrowRate: 0,
-  liquidationPremium: 0,
-  liquidationFee: 0,
-  debtLimit: 0,
-  minDebt: 0,
-  maxDebt: 0,
-  hasMarginAccount: false,
+  totalCollateralValue: 1000,
+  totalValue: 910,
+  avgHealthFactor: 3.42,
+  timeToLiquidation: 4320,
+  borrowRate: 5.25,
+  liquidationPremium: 4.5,
+  liquidationFee: 1.0,
+  debtLimit: 5000,
+  minDebt: 10,
+  maxDebt: 3500,
+  hasMarginAccount: true,
 };
 
 // Export Store

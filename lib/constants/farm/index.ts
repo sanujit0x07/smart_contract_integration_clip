@@ -563,6 +563,45 @@ export const MARGIN_ACCOUNT_STATS_VALUES: Record<
   crossMarginRatio: null,
 };
 
+// Farm pool chart data - USDC/USDT pool price over recent months (Dec 2025 - Mar 2026)
+export const farmChartData = [
+  { date: "2025-12-01", amount: 0.9982 },
+  { date: "2025-12-03", amount: 0.9985 },
+  { date: "2025-12-05", amount: 0.9978 },
+  { date: "2025-12-08", amount: 0.9991 },
+  { date: "2025-12-10", amount: 0.9988 },
+  { date: "2025-12-12", amount: 0.9994 },
+  { date: "2025-12-15", amount: 0.9996 },
+  { date: "2025-12-18", amount: 0.9990 },
+  { date: "2025-12-20", amount: 0.9987 },
+  { date: "2025-12-22", amount: 0.9993 },
+  { date: "2025-12-25", amount: 0.9998 },
+  { date: "2025-12-28", amount: 0.9995 },
+  { date: "2025-12-31", amount: 1.0001 },
+  { date: "2026-01-03", amount: 0.9997 },
+  { date: "2026-01-06", amount: 1.0002 },
+  { date: "2026-01-09", amount: 0.9999 },
+  { date: "2026-01-12", amount: 1.0004 },
+  { date: "2026-01-15", amount: 1.0001 },
+  { date: "2026-01-18", amount: 0.9996 },
+  { date: "2026-01-21", amount: 1.0003 },
+  { date: "2026-01-24", amount: 1.0006 },
+  { date: "2026-01-27", amount: 1.0002 },
+  { date: "2026-01-30", amount: 0.9998 },
+  { date: "2026-02-02", amount: 1.0005 },
+  { date: "2026-02-05", amount: 1.0001 },
+  { date: "2026-02-08", amount: 1.0008 },
+  { date: "2026-02-11", amount: 1.0004 },
+  { date: "2026-02-14", amount: 1.0010 },
+  { date: "2026-02-17", amount: 1.0007 },
+  { date: "2026-02-20", amount: 1.0003 },
+  { date: "2026-02-23", amount: 1.0009 },
+  { date: "2026-02-26", amount: 1.0012 },
+  { date: "2026-03-01", amount: 1.0008 },
+  { date: "2026-03-03", amount: 1.0014 },
+  { date: "2026-03-06", amount: 1.0011 },
+];
+
 export const LEVERAGE_HEALTH_STATS_ITEMS = [
   {
     id: "maxLeverage",

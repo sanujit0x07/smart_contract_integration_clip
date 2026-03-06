@@ -1,12 +1,21 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Chart } from "./chart"
 import { Table } from "./table"
 import { useTheme } from "@/contexts/theme-context";
 import { useEarnVaultStore } from "@/store/earn-vault-store";
 import { useUserDepositHistory } from "@/lib/hooks/useUserPosition";
 import { EarnAsset } from "@/lib/types";
+import { useDemoPositionsStore } from "@/store/demo-positions-store";
+import { iconPaths } from "@/lib/constants";
 
-const tabs = [{id:"current-positions",label:"Current Positions"},{id:"positions-history",label:"Positions History"}]
+const tabs = [{id:"current-positions",label:"Current Position"},{id:"positions-history",label:"Position History"}]
+
+const transactionTableHeadings = [
+  { label: "Date", id: "date" },
+  { label: "Type", id: "type" },
+  { label: "Amount", id: "amount" },
+  { label: "User Id", id: "userId" },
+];
 
 export const YourPositions = () => {
   const { isDark } = useTheme();
@@ -19,9 +28,48 @@ export const YourPositions = () => {
   // Fetch user's deposit history
   const { depositHistory, currentValue, loading } = useUserDepositHistory(asset);
 
+  // Demo positions from store
+  const currentPositions = useDemoPositionsStore((s) => s.currentPositions);
+  const positionHistory = useDemoPositionsStore((s) => s.positionHistory);
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
+
+  // Build table data from demo positions
+  const currentPositionsTableBody = useMemo(() => ({
+    rows: currentPositions.map((pos) => ({
+      cell: [
+        { title: pos.date, description: pos.time },
+        { title: pos.type },
+        {
+          icon: iconPaths[pos.asset] || "/icons/eth-icon.png",
+          title: pos.amount,
+          description: pos.amountUsd,
+        },
+        { icon: "/icons/user.png", title: pos.userId },
+      ],
+    })),
+  }), [currentPositions]);
+
+  const positionHistoryTableBody = useMemo(() => ({
+    rows: positionHistory.map((pos) => ({
+      cell: [
+        { title: pos.date, description: pos.time },
+        { title: pos.type },
+        {
+          icon: iconPaths[pos.asset] || "/icons/eth-icon.png",
+          title: pos.amount,
+          description: pos.amountUsd,
+        },
+        { icon: "/icons/user.png", title: pos.userId },
+      ],
+    })),
+  }), [positionHistory]);
+
+  const activeTableBody = activeTab === "current-positions"
+    ? currentPositionsTableBody
+    : positionHistoryTableBody;
 
   return (
     <section
@@ -56,15 +104,15 @@ export const YourPositions = () => {
         <Table
           filterDropdownPosition="right"
           heading={{
-            heading: "Your Transactions",
+            heading: "All Transactions",
             tabsItems: tabs,
             tabType: "solid"
           }}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          tableHeadings={[]}
-          tableBody={{rows: []}}
-          tableBodyBackground="bg-white"
+          tableHeadings={transactionTableHeadings}
+          tableBody={activeTableBody}
+          tableBodyBackground={isDark ? "bg-[#222222]" : "bg-white"}
           filters={{
             customizeDropdown: true,
             filters: ["All"]

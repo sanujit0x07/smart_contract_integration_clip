@@ -13,6 +13,10 @@ import { supply } from "@/lib/utils/earn/transactions";
 import { useFetchUserWalletBalance, useFetchConvertToShares } from "@/lib/utils/earn/earnFetchers";
 import { SUPPORTED_TOKENS_BY_CHAIN } from "@/lib/utils/web3/token";
 import { useVaultData } from "@/lib/hooks/useVaultData";
+import { useDemoPositionsStore } from "@/store/demo-positions-store";
+
+// Demo mode flag - set to true for product demo with fake data
+const DEMO_MODE = true;
 
 export const SupplyLiquidityTab = () => {
    const { isDark } = useTheme();
@@ -42,7 +46,7 @@ export const SupplyLiquidityTab = () => {
   const [amount, setAmount] = useState<string>("");
   const [selectedPercentage, setSelectedPercentage] = useState<number>(0);
   const [selectedBalance, setSelectedBalance] = useState<string>("WB");
-  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [walletBalance, setWalletBalance] = useState<number>(DEMO_MODE ? 15030 : 0);
   const [isBalanceBreakdownOpen, setIsBalanceBreakdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sharesPreview, setSharesPreview] = useState<number>(0);
@@ -109,7 +113,60 @@ export const SupplyLiquidityTab = () => {
     setSelectedPercentage(0);
   }, [selectedAsset]);
 
+  const addPosition = useDemoPositionsStore((s) => s.addPosition);
+
   const handleSupply = async () => {
+    if (DEMO_MODE) {
+      // Demo mode: simulate transaction with fake data
+      if (!amount || parseFloat(amount) <= 0) {
+        setTxModal({ isOpen: true, status: "error", message: "Please enter an amount" });
+        return;
+      }
+
+      setLoading(true);
+      setTxModal({
+        isOpen: true,
+        status: "pending",
+        message: `Supplying ${amount} ${selectedAsset}...`,
+        tokenSymbol: selectedAsset,
+      });
+
+      // Simulate a 2-second transaction delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const now = new Date();
+      const dateStr = now.toISOString().split("T")[0];
+      const timeStr = now.toTimeString().split(" ")[0];
+      const amountNum = parseFloat(amount);
+      const usdPrice = selectedAsset === "ETH" ? 3150 : selectedAsset === "USDC" ? 1 : 1;
+      const usdValue = (amountNum * usdPrice).toFixed(2);
+
+      addPosition({
+        date: dateStr,
+        time: timeStr,
+        type: "Supply",
+        amount: `${Number(amountNum).toLocaleString()} ${selectedAsset}`,
+        amountUsd: `$${Number(usdValue).toLocaleString()}`,
+        asset: selectedAsset,
+        userId: address || "0xc461...c5c7",
+      });
+
+      setTxModal({
+        isOpen: true,
+        status: "success",
+        message: `Successfully supplied ${amount} ${selectedAsset}`,
+        txHash: "0x" + Math.random().toString(16).slice(2, 66),
+        showFloatingTokens: true,
+        tokenSymbol: selectedAsset,
+      });
+
+      setAmount("");
+      setSelectedPercentage(0);
+      setWalletBalance(Math.max(0, walletBalance - amountNum));
+      setLoading(false);
+      return;
+    }
+
     if (!walletClient || !publicClient || !chainId || !address) {
       setTxModal({ isOpen: true, status: "error", message: "Please connect your wallet" });
       return;
@@ -130,7 +187,7 @@ export const SupplyLiquidityTab = () => {
       isOpen: true,
       status: "pending",
       message: `Supplying ${amount} ${selectedAsset}...`,
-      tokenSymbol: selectedAsset,              
+      tokenSymbol: selectedAsset,
     });
 
     try {
@@ -143,7 +200,7 @@ export const SupplyLiquidityTab = () => {
           message: `Successfully supplied ${amount} ${selectedAsset}`,
           txHash: result.txHash,
           showFloatingTokens: true,
-          tokenSymbol: selectedAsset,          // ✅ PASS TOKEN
+          tokenSymbol: selectedAsset,
         });
 
         setAmount("");
@@ -167,7 +224,7 @@ export const SupplyLiquidityTab = () => {
         isOpen: true,
         status: "error",
         message: isUserRejection ? "Transaction cancelled" : error.message || "Supply failed",
-        tokenSymbol: selectedAsset,            // ✅ PASS TOKEN (optional)
+        tokenSymbol: selectedAsset,
       });
     } finally {
       setLoading(false);
@@ -219,6 +276,11 @@ export const SupplyLiquidityTab = () => {
   };
 
   const getButtonText = () => {
+    if (DEMO_MODE) {
+      if (loading) return "Supplying...";
+      if (!amount || parseFloat(amount) <= 0) return "Enter Amount";
+      return "Supply Liquidity";
+    }
     if (!isConnected) return "Connect Wallet";
     if (loading) return "Supplying...";
     if (!amount || parseFloat(amount) <= 0) return "Enter Amount";
@@ -226,8 +288,9 @@ export const SupplyLiquidityTab = () => {
     return "Supply Liquidity";
   };
 
-  const isButtonDisabled =
-    !isConnected || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > walletBalance;
+  const isButtonDisabled = DEMO_MODE
+    ? loading || !amount || parseFloat(amount) <= 0
+    : !isConnected || loading || !amount || parseFloat(amount) <= 0 || parseFloat(amount) > walletBalance;
   return (
     <>
       <form className={`flex gap-[16px] items-center w-full h-fit border-[1px] rounded-[16px] p-[16px] ${isDark ? "bg-[#111111]" : "bg-[#FFFFFF]"

@@ -5,9 +5,9 @@ export interface User {
   address:string | null
 }
 
-// Initial State
+// Initial State (demo address for product demo — set to null for production)
 const initialState: User = {
-  address:null,
+  address: "0xc461...c5c7",
 };
 
 // Export Store
